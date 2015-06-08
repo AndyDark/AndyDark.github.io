@@ -1,0 +1,515 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>《高性能MySQ》读书笔记：创建高性能的索引 | Andy Dark</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Andy Dark">
+    
+
+    
+    <meta name="description" content="索引的优点总结来说，有如下三个优点：
+
+
+索引大大减少了服务器需要扫描的数据量；
+索引可以帮助服务器避免排序和临时表；
+索引可以将随机I/O变为顺序I/O。
+
+
+“三星系统”：
+
+
+索引将相关的记录放到一起则获得一星 
+如果索引中的数据顺序和查找中的排列顺序一致则获得二星
+如果索引中的列包含了查询中需要的全部列则获得三星">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《高性能MySQ》读书笔记：创建高性能的索引">
+<meta property="og:url" content="http://yoursite.com/2015/06/07/《高性能MySQ》读书笔记：创建高性能的索引/index.html">
+<meta property="og:site_name" content="Andy Dark">
+<meta property="og:description" content="索引的优点总结来说，有如下三个优点：
+
+
+索引大大减少了服务器需要扫描的数据量；
+索引可以帮助服务器避免排序和临时表；
+索引可以将随机I/O变为顺序I/O。
+
+
+“三星系统”：
+
+
+索引将相关的记录放到一起则获得一星 
+如果索引中的数据顺序和查找中的排列顺序一致则获得二星
+如果索引中的列包含了查询中需要的全部列则获得三星">
+<meta property="og:image" content="/my/img/mysql-001.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="《高性能MySQ》读书笔记：创建高性能的索引">
+<meta name="twitter:description" content="索引的优点总结来说，有如下三个优点：
+
+
+索引大大减少了服务器需要扫描的数据量；
+索引可以帮助服务器避免排序和临时表；
+索引可以将随机I/O变为顺序I/O。
+
+
+“三星系统”：
+
+
+索引将相关的记录放到一起则获得一星 
+如果索引中的数据顺序和查找中的排列顺序一致则获得二星
+如果索引中的列包含了查询中需要的全部列则获得三星">
+
+    
+    <link rel="alternative" href="/atom.xml" title="Andy Dark" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/aoli_220.jpg" alt="Andy Dark" title="Andy Dark"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Andy Dark">Andy Dark</a></h1>
+				<h2 class="blog-motto"></h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">主页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:yoursite.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/06/07/《高性能MySQ》读书笔记：创建高性能的索引/" title="《高性能MySQ》读书笔记：创建高性能的索引" itemprop="url">《高性能MySQ》读书笔记：创建高性能的索引</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Andy Dark" target="_blank" itemprop="author">Andy Dark</a>
+		
+  <p class="article-time">
+    <time datetime="2015-06-07T14:24:03.000Z" itemprop="datePublished"> 发表于 2015-06-07</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#索引的优点"><span class="toc-number">1.</span> <span class="toc-text">索引的优点</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#索引类型"><span class="toc-number">2.</span> <span class="toc-text">索引类型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#B-Tree_类型"><span class="toc-number">2.1.</span> <span class="toc-text">B-Tree 类型</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#高性能索引策略"><span class="toc-number">3.</span> <span class="toc-text">高性能索引策略</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">4.</span> <span class="toc-text">总结</span></a></li></ol>
+		
+		</div>
+		
+		<h1 id="索引的优点">索引的优点</h1><p>总结来说，有如下三个优点：</p>
+<blockquote>
+<ul>
+<li>索引大大减少了服务器需要扫描的数据量；</li>
+<li>索引可以帮助服务器避免排序和临时表；</li>
+<li>索引可以将随机I/O变为顺序I/O。</li>
+</ul>
+</blockquote>
+<p>“三星系统”：</p>
+<blockquote>
+<ul>
+<li>索引将相关的记录放到一起则获得一星 </li>
+<li>如果索引中的数据顺序和查找中的排列顺序一致则获得二星</li>
+<li>如果索引中的列包含了查询中需要的全部列则获得三星<a id="more"></a>  
+</li>
+</ul>
+</blockquote>
+<h1 id="索引类型">索引类型</h1><h2 id="B-Tree_类型">B-Tree 类型</h2><p><strong>B-Tree索引适用于全键值、键值范围或键前缀查找（最左前缀查找）</strong>。前面所述的索引，对如下类型的查询有效：</p>
+<blockquote>
+<ul>
+<li><strong>全值匹配</strong>。全值匹配指的是和索引中的所有列进行匹配。</li>
+<li><strong>匹配最左前缀</strong>。只使用了索引第一列。</li>
+<li><strong>匹配列前缀</strong>。匹配某一列的值的开头部分。</li>
+<li><strong>匹配范围值</strong>。</li>
+<li><strong>精确匹配某一列并范围匹配另外一列</strong></li>
+<li><strong>只访问索引的查询</strong>。覆盖索引，即查询只需要访问索引，而无须访问数据行。</li>
+<li><strong>排序</strong>。如果Order by 子语句满足上面列出的集中查询类型，则这个索引也可以满足对应的排序需求。</li>
+</ul>
+</blockquote>
+<p>索引的限制：</p>
+<blockquote>
+<ul>
+<li>如果不是按照索引的最左列开始查找，则无法使用索引 </li>
+<li>不能跳过索引中的列</li>
+<li>如果查询中有某个列的范围查询，则其右边所有列都无法使用索引优化查找。</li>
+</ul>
+</blockquote>
+<p style="color:red"><br>注：<br>MySql5.6加入了Index Condition Pushdown，第三种情况不再受限制。关于ICP可以参考如下资料：<br><a href="http://mdba.cn/?p=315" target="_blank" rel="external">MySQL5.6之Index Condition Pushdown(ICP,索引条件下推)</a><br><a href="http://www.cnblogs.com/zhoujinyi/archive/2013/04/16/3016223.html" target="_blank" rel="external">MySQL 5.6 新功能之 Index Condition Pushdown （ICP）</a><br><a href="http://hedengcheng.com/?p=577" target="_blank" rel="external">何登成：《SQL中的where条件，在数据库中提取与应用浅析》</a><br><a href="https://dev.mysql.com/doc/refman/5.6/en/index-condition-pushdown-optimization.html" target="_blank" rel="external">Mysql官网：《8.2.1.6 Index Condition Pushdown Optimization》</a><br><a href="https://mariadb.com/kb/en/mariadb/index-condition-pushdown/" target="_blank" rel="external">MariaDB：《Index Condition Pushdown》</a><br></p>
+
+<h1 id="高性能索引策略">高性能索引策略</h1><p> <strong>1. 独立的列</strong><br>“独立的列”是指索引列不能是表达式的一部分，也不能是函数的参数。</p>
+<p> <strong>2. 前缀索引和索引选择性</strong></p>
+<ul>
+<li>前缀索引<br> 有时候需要索引很长的字符列，这会让索引变得大且慢。通常可以索引开始的部分字符，这样可以大大节约索引空间，从而提高索引效率。对于BLOB、TEXT、或者很长的VARCHAR类型的列，必须使用前缀索引，因为MySQL不允许索引这些列的完整长度。</li>
+<li><p>索引选择性<br> 不重复的索引值和数据库表的记录总数（#T）的比值，范围从1/T到1之间。唯一索引的选择性是1，这是最好的索引选择性，性能也是最好的。</p>
+<p> 前缀索引是一种能让索引更小、更快的有效办法，但另一方面也有其缺点：MySQL无法使用前缀索引做ORDER BY、GROUP BY和覆盖扫描。</p>
+</li>
+</ul>
+<blockquote>
+<p>注：MySQL原生不支持反向索引，但是可以把字符串反转后存储，并基于此建立前缀索引。可以通过触发器来维护这种索引。  </p>
+</blockquote>
+<p> <strong>3. 多列索引</strong></p>
+<p>在多个列上建立单独的单列索引大部分情况下并不能提供MySQL的查询性能。MYSQLde “索引合并”（index merge）策略并不好用。当出现服务器对多个索引做相交操作的时候，通常意味着需要一个包含所有相关列的多列索引，而不是多个单独的单列索引。</p>
+<p> <strong>4. 选择合适的索引列顺序</strong></p>
+<p> 正确的顺序依赖于使用该索引的查询，并且同时考虑如何更好的满足排序和分组的需要（仅使用B-Tree索引）。</p>
+<p> <strong>5. 聚簇索引</strong></p>
+<p> 聚簇索引并不是一种单独的索引类型，而是一种数据存储方式。Oralce中，叫做索引组织表。<br> InnoDB将通过主键聚集数据；如果没有定义主键，会选择一个唯一的非空索引代替；如果没有这样的索引，会隐式定义一个主键来作为聚簇索引。</p>
+<p> 聚簇和非聚簇表对比图：<br><img src="/my/img/mysql-001.png" alt=""></p>
+<p> <strong>6. 覆盖索引</strong></p>
+<p>如果一个索引覆盖所有需要查询的字段的值，称之为“覆盖索引”。MySQL只能使用B-Tree索引作为覆盖索引。</p>
+<p> <strong>7. 使用索引扫描来做排序</strong></p>
+<p> MySQL有两种方式可以生成有序的结果：通过排序操作；或按照索引顺序扫描。如果EXPLAIN出来的type值为“index”，则说明MySQL使用了索引扫描来做排序。</p>
+<p> 使用时注意一下几点：</p>
+<blockquote>
+<ul>
+<li>只有当索引的列顺序和ORDER BY 子句的顺序完全一致，并且所有列的排序方向（倒序或者正序）都一样时，MySQL才能够使用索引来对结果排序。</li>
+<li>如果查询需要关联多张表，则只有当ORDER BY子句引用的字段全部为第一个表时，才能使用索引做排序。</li>
+<li>如果前导列为常量的时候，ORDER BY子句可以不满足最左前缀要求</li>
+</ul>
+</blockquote>
+<p> <strong>8. 压缩（前缀压缩）索引</strong></p>
+<p> MyISAM使用前缀压缩来减少索引的大小。</p>
+<p> <strong>9. 冗余和重复索引</strong></p>
+<p> <strong>10. 未使用的索引</strong></p>
+<p> <strong>11. 索引和锁</strong><br> 有两篇很经典的文章：<br> <a href="http://tech.meituan.com/innodb-lock.html" target="_blank" rel="external">《美团 Innodb中的事务隔离级别和锁的关系》</a><br> <a href="http://hedengcheng.com/?p=771#_Toc374698316" target="_blank" rel="external">《何登成 MySQL加锁处理分析》</a></p>
+<h1 id="总结">总结</h1><p> 在选择索引和编写利用这些索引的查询时，有如下三个原则始终需要记住：</p>
+<blockquote>
+<ol>
+<li>单行访问是很慢的。</li>
+<li>按顺序访问范围数据是很快的。</li>
+<li>索引覆盖查询是很快的。</li>
+</ol>
+</blockquote>
+<p> 总的来说，编写查询语句时应该尽可能选择合适的索引以避免单行查找、尽可能地使用数据原生顺序从而避免额外的排序操作，并尽可能使用索引覆盖查询。</p>
+<p> 那如何判断一个系统创建的索引是合理的呢？</p>
+<p> 一般来说，我们建议按响应时间来对查询进行分析。找出那些消耗最长时间的查询或者那些给服务器带来最大压力的查询，然后检查这些查询的schema、SQL和索引结构，判断是否有查询扫描了太多的行，是否做了很多额外的排序或者使用了临时表，是否使用随机I/O访问数据，或者是有太多会标查询那些不在索引中的列的操作。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/MySQL/">MySQL</a><a href="/tags/索引/">索引</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://yoursite.com/2015/06/07/《高性能MySQ》读书笔记：创建高性能的索引/" data-title="《高性能MySQ》读书笔记：创建高性能的索引 | Andy Dark" data-tsina="null" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2015/06/07/《高性能MySQ》读书笔记：创建高性能的索引/" data-title="《高性能MySQ》读书笔记：创建高性能的索引" data-url="http://yoursite.com/2015/06/07/《高性能MySQ》读书笔记：创建高性能的索引/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#索引的优点"><span class="toc-number">1.</span> <span class="toc-text">索引的优点</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#索引类型"><span class="toc-number">2.</span> <span class="toc-text">索引类型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#B-Tree_类型"><span class="toc-number">2.1.</span> <span class="toc-text">B-Tree 类型</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#高性能索引策略"><span class="toc-number">3.</span> <span class="toc-text">高性能索引策略</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">4.</span> <span class="toc-text">总结</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/MySQL/" title="MySQL">MySQL<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/索引/" title="索引">索引<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello ,I&#39;m Andy Dark. <br/>
+			This is my blog,believe it or not.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="Andy Dark">Andy Dark</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#nothing"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"andydark"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>
