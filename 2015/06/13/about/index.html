@@ -4,22 +4,22 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>MySQL绿色版安装配置（WIN7） | Andy Dark</title>
+    <title>关于我 | Andy Dark</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     
     <meta name="author" content="Andy Dark">
     
 
     
-    <meta name="description" content="最近想装个新版的MySQL进行测试，又懒得迁移旧版的数据，于是下了个绿色版准备安装多版本。">
+    <meta name="description" content="这是一个很懒的家伙，什么的都没有留下来。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MySQL绿色版安装配置（WIN7）">
-<meta property="og:url" content="http://yoursite.com/2015/06/08/MySQL绿色版安装配置（WIN7）/index.html">
+<meta property="og:title" content="关于我">
+<meta property="og:url" content="http://yoursite.com/2015/06/13/about/index.html">
 <meta property="og:site_name" content="Andy Dark">
-<meta property="og:description" content="最近想装个新版的MySQL进行测试，又懒得迁移旧版的数据，于是下了个绿色版准备安装多版本。">
+<meta property="og:description" content="这是一个很懒的家伙，什么的都没有留下来。">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="MySQL绿色版安装配置（WIN7）">
-<meta name="twitter:description" content="最近想装个新版的MySQL进行测试，又懒得迁移旧版的数据，于是下了个绿色版准备安装多版本。">
+<meta name="twitter:title" content="关于我">
+<meta name="twitter:description" content="这是一个很懒的家伙，什么的都没有留下来。">
 
     
     <link rel="alternative" href="/atom.xml" title="Andy Dark" type="application/atom+xml">
@@ -79,14 +79,14 @@
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2015/06/08/MySQL绿色版安装配置（WIN7）/" title="MySQL绿色版安装配置（WIN7）" itemprop="url">MySQL绿色版安装配置（WIN7）</a>
+      <a href="/2015/06/13/about/" title="关于我" itemprop="url">关于我</a>
   </h1>
   <p class="article-author">By
        
 		<a href="/about" title="Andy Dark" target="_blank" itemprop="author">Andy Dark</a>
 		
   <p class="article-time">
-    <time datetime="2015-06-08T04:26:54.000Z" itemprop="datePublished"> 发表于 2015-06-08</time>
+    <time datetime="2015-06-13T06:52:27.000Z" itemprop="datePublished"> 发表于 2015-06-13</time>
     
   </p>
 </header>
@@ -99,30 +99,12 @@
 		
 		</div>
 		
-		<p>最近想装个新版的MySQL进行测试，又懒得迁移旧版的数据，于是下了个绿色版准备安装多版本。</p>
-<a id="more"></a>
-<p>定义以下预定：</p>
-<blockquote>
-<ul>
-<li>${mysql_dir}代表mysql所在目录</li>
-<li>${mysql_server_name} 代表mysql的服务名</li>
-</ul>
-</blockquote>
-<p>1、复制${mysql_dir}目录下面的my-default.ini并改过名为my.ini</p>
-<p>2、打开my.ini, 添加如下配置：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">basedir=<span class="variable">$&#123;mysql_dir&#125;</span></span><br><span class="line">datadir=<span class="variable">$&#123;mysql_dir&#125;</span>/data</span><br><span class="line">port=<span class="number">3306</span></span><br><span class="line">character_<span class="built_in">set</span>_server=utf8</span><br><span class="line">explicit_defaults_<span class="keyword">for</span>_timestamp=<span class="number">1</span></span><br></pre></td></tr></table></figure></p>
-<p>3、安装服务<br>网上教程一般写的都是，在${mysql_dir}/bin下面执行：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld -install <span class="variable">$&#123;mysql_server_name&#125;</span> --defaults-file=<span class="string">"<span class="variable">$&#123;mysql_dir&#125;</span>\my.ini"</span></span><br></pre></td></tr></table></figure></p>
-<p>但是这里面有一个问题，如果以前安装过Mysql的话，mysqld可能使用的是另外一个Mysql的。启动服务的时候出现错误：“发生系统错误 1067。 进程意外终止。”。解决的办法是，指定mysqld命令所在的目录：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$&#123;mysql_dir&#125;</span>\bin\mysqld.exe -install <span class="variable">$&#123;mysql_server_name&#125;</span> --defaults-file=<span class="string">"<span class="variable">$&#123;mysql_dir&#125;</span>\my.ini"</span></span><br></pre></td></tr></table></figure></p>
-<p>4、启动和关闭服务<br>有两种方式，一种是直接在window的服务界面直接选择${mysql_server_name}进行启动和关闭；一种是通过命令：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#启动服务</span></span><br><span class="line">net start <span class="variable">$&#123;mysql_server_name&#125;</span></span><br><span class="line"><span class="comment">#关闭服务</span></span><br><span class="line">mysqladmin -u root shutdown</span><br></pre></td></tr></table></figure></p>
+		<p>这是一个很懒的家伙，什么的都没有留下来。</p>
   
 	</div>
 		<footer class="article-footer clearfix">
 <div class="article-catetags">
 
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/MySQL/">MySQL</a>
-  </div>
 
 </div>
 
@@ -130,7 +112,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://yoursite.com/2015/06/08/MySQL绿色版安装配置（WIN7）/" data-title="MySQL绿色版安装配置（WIN7） | Andy Dark" data-tsina="null" class="share clearfix">
+	  <div data-url="http://yoursite.com/2015/06/13/about/" data-title="关于我 | Andy Dark" data-tsina="null" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -143,20 +125,20 @@
 	
 <nav class="article-nav clearfix">
  
- <div class="prev" >
- <a href="/2015/06/12/《高性能MySQL》读书笔记：创建高性能的索引/" title="《高性能MySQL》读书笔记：创建高性能的索引">
-  <strong>上一篇：</strong><br/>
-  <span>
-  《高性能MySQL》读书笔记：创建高性能的索引</span>
+
+<div class="next">
+<a href="/2015/06/13/about-1/"  title="关于我">
+ <strong>下一篇：</strong><br/> 
+ <span>关于我
+</span>
 </a>
 </div>
-
 
 </nav>
 
 	
 <section id="comments" class="comment">
-	<div class="ds-thread" data-thread-key="2015/06/08/MySQL绿色版安装配置（WIN7）/" data-title="MySQL绿色版安装配置（WIN7）" data-url="http://yoursite.com/2015/06/08/MySQL绿色版安装配置（WIN7）/"></div>
+	<div class="ds-thread" data-thread-key="2015/06/13/about/" data-title="关于我" data-url="http://yoursite.com/2015/06/13/about/"></div>
 </section>
 
 
