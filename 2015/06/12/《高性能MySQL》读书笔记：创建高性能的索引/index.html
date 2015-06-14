@@ -179,12 +179,10 @@
 <p style="color:red"><br>注：<br>MySql5.6加入了Index Condition Pushdown，第三种情况不再受限制。关于ICP可以参考如下资料：<br><a href="http://mdba.cn/?p=315" target="_blank" rel="external">MySQL5.6之Index Condition Pushdown(ICP,索引条件下推)</a><br><a href="http://www.cnblogs.com/zhoujinyi/archive/2013/04/16/3016223.html" target="_blank" rel="external">MySQL 5.6 新功能之 Index Condition Pushdown （ICP）</a><br><a href="http://hedengcheng.com/?p=577" target="_blank" rel="external">何登成：《SQL中的where条件，在数据库中提取与应用浅析》</a><br><a href="https://dev.mysql.com/doc/refman/5.6/en/index-condition-pushdown-optimization.html" target="_blank" rel="external">Mysql官网：《8.2.1.6 Index Condition Pushdown Optimization》</a><br><a href="https://mariadb.com/kb/en/mariadb/index-condition-pushdown/" target="_blank" rel="external">MariaDB：《Index Condition Pushdown》</a><br></p>
 
 <h1 id="高性能索引策略">高性能索引策略</h1><p> <strong>1. 独立的列</strong><br>“独立的列”是指索引列不能是表达式的一部分，也不能是函数的参数。</p>
-<p> <strong>2. 前缀索引和索引选择性</strong></p>
+<p> <strong>2. 前缀索引和索引选择性</strong>  </p>
 <ul>
 <li>前缀索引<br> 有时候需要索引很长的字符列，这会让索引变得大且慢。通常可以索引开始的部分字符，这样可以大大节约索引空间，从而提高索引效率。对于BLOB、TEXT、或者很长的VARCHAR类型的列，必须使用前缀索引，因为MySQL不允许索引这些列的完整长度。</li>
-<li><p>索引选择性<br> 不重复的索引值和数据库表的记录总数（#T）的比值，范围从1/T到1之间。唯一索引的选择性是1，这是最好的索引选择性，性能也是最好的。</p>
-<p> 前缀索引是一种能让索引更小、更快的有效办法，但另一方面也有其缺点：MySQL无法使用前缀索引做ORDER BY、GROUP BY和覆盖扫描。</p>
-</li>
+<li>索引选择性<br> 不重复的索引值和数据库表的记录总数（#T）的比值，范围从1/T到1之间。唯一索引的选择性是1，这是最好的索引选择性，性能也是最好的。<br> 前缀索引是一种能让索引更小、更快的有效办法，但另一方面也有其缺点：MySQL无法使用前缀索引做ORDER BY、GROUP BY和覆盖扫描。</li>
 </ul>
 <blockquote>
 <p>注：MySQL原生不支持反向索引，但是可以把字符串反转后存储，并基于此建立前缀索引。可以通过触发器来维护这种索引。  </p>
